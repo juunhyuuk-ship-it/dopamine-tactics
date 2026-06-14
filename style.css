@@ -9,9 +9,7 @@
   --accent-2: #a78bfa;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -30,7 +28,7 @@ body {
 }
 
 .hero {
-  min-height: 48vh;
+  min-height: 46vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -99,9 +97,15 @@ p {
   cursor: pointer;
 }
 
-.count {
+.count,
+.source-status {
   color: var(--muted);
   font-size: 14px;
+}
+
+.source-status {
+  margin-top: -4px;
+  opacity: 0.8;
 }
 
 .results {
@@ -202,13 +206,8 @@ summary {
   font-weight: 850;
 }
 
-pre {
-  overflow-x: auto;
-  margin-bottom: 0;
-  padding: 16px;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.36);
-  color: #e8f1ff;
+code {
+  color: #dff7ff;
 }
 
 @media (max-width: 760px) {
@@ -217,9 +216,7 @@ pre {
     padding-top: 34px;
   }
 
-  .hero {
-    min-height: 42vh;
-  }
+  .hero { min-height: 42vh; }
 
   .search-box {
     flex-direction: column;

@@ -1,38 +1,42 @@
-# Dopamine Tactics - Simple Version
+# Dopamine Tactics - Google Sheets CSV Version
 
-오더 중 빠르게 보기 위한 초간단 버전입니다.
+이 버전은 `data.json`을 쓰지 않습니다.
 
-## 기능
+## 데이터 관리 방식
 
-- 부족명 검색
-- 팀명 검색
-- 닉네임 검색
-- 속성 표시
-- 체력 표시
-- 주요 펫 표시
+둘 중 하나를 선택하면 됩니다.
 
-펫 티어표, 상성 분석, 위험도, 정렬 기능은 제거했습니다.
+1. `data.csv` 파일을 엑셀/구글시트로 수정해서 GitHub에 다시 업로드
+2. Google Sheets를 웹에 CSV로 게시하고 `config.js`에 CSV URL 붙여넣기
 
-## 수정해야 하는 파일
+## 필요한 컬럼
 
-`data.json`만 수정하면 됩니다.
+반드시 첫 줄에 아래 컬럼명이 있어야 합니다.
 
-## 상대 추가 예시
-
-```json
-{
-  "id": "OPP-0005",
-  "clan": "부족명",
-  "team": "팀명",
-  "nickname": "닉네임",
-  "attributes": "화10",
-  "hp": 400,
-  "mainPets": ["주요펫1", "주요펫2"]
-}
+```csv
+부족명,팀명,닉네임,속성,체력,주요펫
 ```
 
-## GitHub에 반영하는 법
+## Google Sheets 연동 방법
 
-1. 기존 저장소에서 `index.html`, `style.css`, `script.js`, `data.json`, `README.md`를 새 파일로 덮어씁니다.
-2. Commit changes를 누릅니다.
-3. 기존 GitHub Pages 주소로 다시 접속합니다.
+1. Google Sheets에 아래 컬럼을 만듭니다.
+   - 부족명
+   - 팀명
+   - 닉네임
+   - 속성
+   - 체력
+   - 주요펫
+2. 파일 > 공유 > 웹에 게시
+3. 상대정보 시트 선택
+4. CSV 형식 선택
+5. 게시 후 CSV URL 복사
+6. `config.js` 파일의 아래 부분에 붙여넣기
+
+```js
+window.DOPAMINE_SHEET_CSV_URL = "여기에 CSV URL";
+```
+
+## 주의
+
+Google Sheets CSV 게시 방식은 공개 데이터입니다.
+민감한 정보는 올리지 마세요.

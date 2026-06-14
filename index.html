@@ -19,28 +19,22 @@
         <button id="clearBtn" type="button">초기화</button>
       </div>
 
-      <div class="count" id="resultCount">전체 데이터 0명</div>
+      <div class="count" id="resultCount">데이터 불러오는 중...</div>
+      <div class="source-status" id="sourceStatus"></div>
     </section>
 
     <section class="results" id="results" aria-live="polite"></section>
 
     <section class="admin-guide">
       <details>
-        <summary>데이터 수정 방법</summary>
-        <p><strong>data.json</strong> 파일의 <strong>opponents</strong> 안에 상대 정보를 추가/수정하면 됩니다.</p>
-        <pre><code>{
-  "id": "OPP-0005",
-  "clan": "부족명",
-  "team": "팀명",
-  "nickname": "닉네임",
-  "attributes": "화10",
-  "hp": 400,
-  "mainPets": ["주요펫1", "주요펫2"]
-}</code></pre>
+        <summary>스프레드시트 연동 방법</summary>
+        <p>Google Sheets에서 <strong>부족명 / 팀명 / 닉네임 / 속성 / 체력 / 주요펫</strong> 컬럼을 만든 뒤 CSV로 게시하세요.</p>
+        <p>게시한 CSV 주소를 <strong>config.js</strong>의 <code>window.DOPAMINE_SHEET_CSV_URL</code>에 붙여넣으면 됩니다.</p>
       </details>
     </section>
   </main>
 
+  <script src="./config.js"></script>
   <script src="./script.js"></script>
 </body>
 </html>
