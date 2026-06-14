@@ -1,4 +1,5 @@
 let opponents = [];
+let diagnostics = [];
 
 const searchInput = document.querySelector("#searchInput");
 const clearBtn = document.querySelector("#clearBtn");
@@ -6,6 +7,7 @@ const results = document.querySelector("#results");
 const resultCount = document.querySelector("#resultCount");
 const dataSource = document.querySelector("#dataSource");
 const teamList = document.querySelector("#teamList");
+const debugPanel = document.querySelector("#debugPanel");
 
 const CSV_URL = window.DOPAMINE_SHEET_CSV_URL || "";
 const TEAM_MEMBERS = window.DOPAMINE_TEAM_MEMBERS || [];
@@ -22,13 +24,16 @@ async function init() {
   renderTeamList();
 
   try {
-    const csvText = await loadCsvText();
-    opponents = csvToOpponents(csvText);
+    const rows = await loadDataRows();
+    opponents = rowsToOpponents(rows);
     render(opponents);
+    renderDiagnostics(false);
   } catch (error) {
+    diagnostics.push(`최종 실패: ${error.message}`);
     console.error(error);
-    results.innerHTML = `<div class="empty">데이터를 불러오지 못했습니다.<br>Google Sheets 게시 URL 또는 data.csv를 확인해주세요.</div>`;
+    results.innerHTML = `<div class="empty">데이터를 불러오지 못했습니다.<br>아래 진단 내용을 확인해주세요.</div>`;
     resultCount.textContent = "데이터 오류";
+    renderDiagnostics(true);
   }
 
   searchInput.addEventListener("input", () => {
@@ -55,40 +60,163 @@ async function init() {
   });
 }
 
-
-async function loadCsvText() {
+async function loadDataRows() {
   if (CSV_URL) {
     try {
-      dataSource.textContent = "Google Sheets CSV 연동 중";
-      const response = await fetch(CSV_URL, { cache: "no-store" });
-
-      if (!response.ok) {
-        throw new Error(`Google Sheets CSV 응답 오류: ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      // 구글 권한/게시 문제가 있으면 CSV가 아니라 HTML이 내려오는 경우가 있어 방어합니다.
-      if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
-        throw new Error("Google Sheets CSV가 아니라 HTML 페이지가 내려왔습니다.");
-      }
-
-      return text;
+      diagnostics.push("1차 시도: Google Visualization 방식");
+      dataSource.textContent = "Google Sheets 연동 시도 중";
+      const gvizRows = await loadGoogleVisualizationRows(CSV_URL);
+      diagnostics.push(`Google Visualization 성공: ${gvizRows.length - 1}명`);
+      dataSource.textContent = "Google Sheets 연동 중";
+      return gvizRows;
     } catch (error) {
-      console.warn("Google Sheets CSV 불러오기 실패. 로컬 data.csv로 대체합니다.", error);
-      dataSource.textContent = "Google Sheets 실패 → 로컬 data.csv 사용 중";
+      diagnostics.push(`Google Visualization 실패: ${error.message}`);
+    }
+
+    try {
+      diagnostics.push("2차 시도: Google Sheets CSV 직접 읽기");
+      const csvText = await fetchText(CSV_URL);
+      const rows = parseCsv(csvText);
+      diagnostics.push(`Google CSV 성공: ${rows.length - 1}명`);
+      dataSource.textContent = "Google Sheets CSV 연동 중";
+      return rows;
+    } catch (error) {
+      diagnostics.push(`Google CSV 실패: ${error.message}`);
     }
   } else {
-    dataSource.textContent = "로컬 data.csv 사용 중";
+    diagnostics.push("config.js의 CSV 주소가 비어 있음");
   }
 
-  const localResponse = await fetch("./data.csv", { cache: "no-store" });
-  if (!localResponse.ok) {
-    throw new Error(`로컬 data.csv 응답 오류: ${localResponse.status}`);
+  try {
+    diagnostics.push("3차 시도: 로컬 data.csv 읽기");
+    const localText = await fetchText("./data.csv");
+    const rows = parseCsv(localText);
+    diagnostics.push(`로컬 data.csv 성공: ${rows.length - 1}명`);
+    dataSource.textContent = "로컬 data.csv 사용 중";
+    return rows;
+  } catch (error) {
+    diagnostics.push(`로컬 data.csv 실패: ${error.message}`);
   }
-  return await localResponse.text();
+
+  throw new Error("Google Sheets와 로컬 data.csv를 모두 불러오지 못했습니다.");
 }
 
+function fetchText(url) {
+  return fetch(url, { cache: "no-store" }).then(async (response) => {
+    if (!response.ok) {
+      throw new Error(`${url} 응답 오류 ${response.status}`);
+    }
+
+    const text = await response.text();
+    const trimmed = text.trim();
+
+    if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+      throw new Error(`${url}에서 CSV가 아니라 HTML 페이지가 내려왔습니다.`);
+    }
+
+    return text;
+  });
+}
+
+function loadGoogleVisualizationRows(csvUrl) {
+  return new Promise((resolve, reject) => {
+    const gvizUrl = toGvizUrl(csvUrl);
+    if (!gvizUrl) {
+      reject(new Error("Google Visualization URL 변환 실패"));
+      return;
+    }
+
+    const previousGoogle = window.google;
+    let done = false;
+
+    window.google = window.google || {};
+    window.google.visualization = window.google.visualization || {};
+    window.google.visualization.Query = window.google.visualization.Query || {};
+    window.google.visualization.Query.setResponse = (response) => {
+      if (done) return;
+      done = true;
+
+      cleanup();
+
+      try {
+        if (!response || response.status === "error") {
+          reject(new Error(response?.errors?.[0]?.detailed_message || "Google Visualization 응답 오류"));
+          return;
+        }
+
+        const table = response.table;
+        const headers = (table.cols || []).map((col) => col.label || col.id || "");
+        const rows = (table.rows || []).map((row) => (row.c || []).map((cell) => cell?.f ?? cell?.v ?? ""));
+        resolve([headers, ...rows]);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    const script = document.createElement("script");
+    script.src = gvizUrl;
+    script.async = true;
+    script.onerror = () => {
+      if (done) return;
+      done = true;
+      cleanup();
+      reject(new Error("Google Visualization script 로드 실패"));
+    };
+
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      cleanup();
+      reject(new Error("Google Visualization 응답 시간 초과"));
+    }, 8000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      script.remove();
+      if (previousGoogle) {
+        window.google = previousGoogle;
+      }
+    }
+
+    document.head.appendChild(script);
+  });
+}
+
+function toGvizUrl(csvUrl) {
+  try {
+    const url = new URL(csvUrl);
+    const gid = url.searchParams.get("gid") || "0";
+    const base = `${url.origin}${url.pathname.replace(/\/pub$/, "/gviz/tq")}`;
+    return `${base}?tqx=out:json&gid=${encodeURIComponent(gid)}`;
+  } catch {
+    return "";
+  }
+}
+
+function rowsToOpponents(rows) {
+  const cleanRows = rows.filter((row) => row.some((cell) => String(cell).trim() !== ""));
+  if (!cleanRows.length) return [];
+
+  const headers = cleanRows[0].map((header) => normalizeHeader(header));
+  const parsed = cleanRows.slice(1).map((row, index) => {
+    const item = {};
+    headers.forEach((header, i) => {
+      item[header] = row[i] || "";
+    });
+
+    return {
+      id: `OPP-${String(index + 1).padStart(4, "0")}`,
+      clan: item["부족명"] || item["clan"] || "",
+      team: item["팀명"] || item["team"] || "",
+      nickname: item["닉네임"] || item["nickname"] || "",
+      attributes: item["속성"] || item["attributes"] || "",
+      hp: item["체력"] || item["hp"] || "",
+      mainPets: item["주요펫"] || item["mainpets"] || ""
+    };
+  });
+
+  return parsed.filter((item) => item.clan || item.team || item.nickname);
+}
 
 function render(list, keyword = "") {
   resultCount.textContent = keyword
@@ -196,29 +324,6 @@ function splitPets(value = "") {
     .filter(Boolean);
 }
 
-function csvToOpponents(csvText) {
-  const rows = parseCsv(csvText).filter((row) => row.some((cell) => String(cell).trim() !== ""));
-  if (!rows.length) return [];
-
-  const headers = rows[0].map((header) => normalizeHeader(header));
-  return rows.slice(1).map((row, index) => {
-    const item = {};
-    headers.forEach((header, i) => {
-      item[header] = row[i] || "";
-    });
-
-    return {
-      id: `OPP-${String(index + 1).padStart(4, "0")}`,
-      clan: item["부족명"] || item["clan"] || "",
-      team: item["팀명"] || item["team"] || "",
-      nickname: item["닉네임"] || item["nickname"] || "",
-      attributes: item["속성"] || item["attributes"] || "",
-      hp: item["체력"] || item["hp"] || "",
-      mainPets: item["주요펫"] || item["mainpets"] || ""
-    };
-  });
-}
-
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -271,6 +376,19 @@ function renderTeamList() {
       <span class="attr">${escapeHtml(member.attributes)}</span>
     </span>
   `).join("");
+}
+
+function renderDiagnostics(forceShow = false) {
+  if (!debugPanel) return;
+  if (!forceShow && diagnostics.some((line) => line.includes("성공"))) {
+    debugPanel.innerHTML = "";
+    return;
+  }
+
+  debugPanel.innerHTML = `
+    <h3>진단 내용</h3>
+    <ul>${diagnostics.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+  `;
 }
 
 function normalize(value) {

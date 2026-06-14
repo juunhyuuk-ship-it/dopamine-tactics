@@ -10,6 +10,7 @@
   --good: #86efac;
   --good-bg: rgba(134, 239, 172, 0.13);
   --good-line: rgba(134, 239, 172, 0.24);
+  --bad: #fca5a5;
 }
 
 * {
@@ -229,12 +230,14 @@ p {
 }
 
 .admin-guide,
-.team-guide {
+.team-guide,
+.debug-panel {
   margin-top: 18px;
   color: var(--muted);
 }
 
-details {
+details,
+.debug-panel:not(:empty) {
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 16px 18px;
@@ -259,6 +262,16 @@ summary {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.055);
   border: 1px solid var(--line);
+}
+
+.debug-panel h3 {
+  margin: 0 0 8px;
+  color: var(--bad);
+}
+
+.debug-panel ul {
+  margin: 0;
+  padding-left: 18px;
 }
 
 pre {
