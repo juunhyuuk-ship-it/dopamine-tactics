@@ -22,11 +22,7 @@ async function init() {
   renderTeamList();
 
   try {
-    const source = CSV_URL || "./data.csv";
-    dataSource.textContent = CSV_URL ? "Google Sheets CSV 연동 중" : "로컬 data.csv 사용 중";
-
-    const response = await fetch(source, { cache: "no-store" });
-    const csvText = await response.text();
+    const csvText = await loadCsvText();
     opponents = csvToOpponents(csvText);
     render(opponents);
   } catch (error) {
@@ -58,6 +54,41 @@ async function init() {
     render(opponents);
   });
 }
+
+
+async function loadCsvText() {
+  if (CSV_URL) {
+    try {
+      dataSource.textContent = "Google Sheets CSV 연동 중";
+      const response = await fetch(CSV_URL, { cache: "no-store" });
+
+      if (!response.ok) {
+        throw new Error(`Google Sheets CSV 응답 오류: ${response.status}`);
+      }
+
+      const text = await response.text();
+
+      // 구글 권한/게시 문제가 있으면 CSV가 아니라 HTML이 내려오는 경우가 있어 방어합니다.
+      if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+        throw new Error("Google Sheets CSV가 아니라 HTML 페이지가 내려왔습니다.");
+      }
+
+      return text;
+    } catch (error) {
+      console.warn("Google Sheets CSV 불러오기 실패. 로컬 data.csv로 대체합니다.", error);
+      dataSource.textContent = "Google Sheets 실패 → 로컬 data.csv 사용 중";
+    }
+  } else {
+    dataSource.textContent = "로컬 data.csv 사용 중";
+  }
+
+  const localResponse = await fetch("./data.csv", { cache: "no-store" });
+  if (!localResponse.ok) {
+    throw new Error(`로컬 data.csv 응답 오류: ${localResponse.status}`);
+  }
+  return await localResponse.text();
+}
+
 
 function render(list, keyword = "") {
   resultCount.textContent = keyword
