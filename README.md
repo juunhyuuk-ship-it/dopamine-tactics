@@ -1,42 +1,47 @@
-# Dopamine Tactics - Google Sheets CSV Version
+# Dopamine Tactics - Advantage Version
 
-이 버전은 `data.json`을 쓰지 않습니다.
+Google Sheets CSV를 읽어 상대 정보를 검색하고, 상대 속성 기준으로 유리한 우리팀 캐릭터를 자동 표시합니다.
 
-## 데이터 관리 방식
+## 표시 정보
 
-둘 중 하나를 선택하면 됩니다.
+- 부족명
+- 팀명
+- 닉네임
+- 속성
+- 체력
+- 주요펫
+- 유리한 우리팀
 
-1. `data.csv` 파일을 엑셀/구글시트로 수정해서 GitHub에 다시 업로드
-2. Google Sheets를 웹에 CSV로 게시하고 `config.js`에 CSV URL 붙여넣기
+## 상성 기준
 
-## 필요한 컬럼
+- 지 -> 수
+- 수 -> 화
+- 화 -> 풍
+- 풍 -> 지
 
-반드시 첫 줄에 아래 컬럼명이 있어야 합니다.
+## 우리팀 속성 수정
 
-```csv
-부족명,팀명,닉네임,속성,체력,주요펫
-```
-
-## Google Sheets 연동 방법
-
-1. Google Sheets에 아래 컬럼을 만듭니다.
-   - 부족명
-   - 팀명
-   - 닉네임
-   - 속성
-   - 체력
-   - 주요펫
-2. 파일 > 공유 > 웹에 게시
-3. 상대정보 시트 선택
-4. CSV 형식 선택
-5. 게시 후 CSV URL 복사
-6. `config.js` 파일의 아래 부분에 붙여넣기
+`config.js`의 아래 영역을 수정하세요.
 
 ```js
-window.DOPAMINE_SHEET_CSV_URL = "여기에 CSV URL";
+window.DOPAMINE_TEAM_MEMBERS = [
+  { name: "바트", attributes: "수화" },
+  { name: "호머", attributes: "수화" }
+];
 ```
 
-## 주의
+## Google Sheets 컬럼
 
-Google Sheets CSV 게시 방식은 공개 데이터입니다.
-민감한 정보는 올리지 마세요.
+Google Sheets 첫 줄은 아래처럼 유지하세요.
+
+```text
+부족명, 팀명, 닉네임, 속성, 체력, 주요펫
+```
+
+## CSV 주소 수정
+
+`config.js`에서 아래 값을 수정하세요.
+
+```js
+window.DOPAMINE_SHEET_CSV_URL = "구글시트 CSV 주소";
+```

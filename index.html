@@ -12,24 +12,35 @@
     <section class="hero">
       <div class="logo">DT</div>
       <h1>Dopamine Tactics</h1>
-      <p>부족명, 팀명, 닉네임을 검색하세요.</p>
+      <p>부족명, 팀명, 닉네임을 검색하면 상대 정보와 유리한 우리팀 캐릭터를 바로 확인합니다.</p>
 
       <div class="search-box">
         <input id="searchInput" type="search" placeholder="예: 예시부족 / 1팀 / 상대A" autocomplete="off" autofocus />
         <button id="clearBtn" type="button">초기화</button>
       </div>
 
-      <div class="count" id="resultCount">데이터 불러오는 중...</div>
-      <div class="source-status" id="sourceStatus"></div>
+      <div class="count">
+        <span id="dataSource">데이터 확인 중</span>
+        <span>·</span>
+        <span id="resultCount">전체 데이터 0명</span>
+      </div>
     </section>
 
     <section class="results" id="results" aria-live="polite"></section>
 
+    <section class="team-guide">
+      <details>
+        <summary>우리팀 속성 기준 보기</summary>
+        <div id="teamList" class="team-list"></div>
+      </details>
+    </section>
+
     <section class="admin-guide">
       <details>
-        <summary>스프레드시트 연동 방법</summary>
-        <p>Google Sheets에서 <strong>부족명 / 팀명 / 닉네임 / 속성 / 체력 / 주요펫</strong> 컬럼을 만든 뒤 CSV로 게시하세요.</p>
-        <p>게시한 CSV 주소를 <strong>config.js</strong>의 <code>window.DOPAMINE_SHEET_CSV_URL</code>에 붙여넣으면 됩니다.</p>
+        <summary>데이터 수정 방법</summary>
+        <p><strong>Google Sheets</strong>에서 아래 컬럼만 유지하면 됩니다.</p>
+        <pre><code>부족명, 팀명, 닉네임, 속성, 체력, 주요펫</code></pre>
+        <p>우리팀 속성은 <strong>config.js</strong>의 <strong>DOPAMINE_TEAM_MEMBERS</strong>에서 수정할 수 있습니다.</p>
       </details>
     </section>
   </main>
