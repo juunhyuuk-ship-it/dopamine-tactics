@@ -1,191 +1,58 @@
 {
   "meta": {
     "appName": "Dopamine Tactics",
-    "version": "1.0.0",
+    "version": "2.0-simple",
     "updatedAt": "2026-06-14",
-    "description": "부족전 듀얼 오더용 상대 검색 / 펫 티어표 데이터"
-  },
-  "settings": {
-    "attributeOrder": [
-      "지",
-      "수",
-      "화",
-      "풍"
-    ],
-    "attributeAdvantage": {
-      "수": [
-        "화"
-      ],
-      "화": [
-        "풍"
-      ],
-      "풍": [
-        "지"
-      ],
-      "지": [
-        "수"
-      ]
-    },
-    "attributeDisadvantage": {
-      "수": [
-        "지"
-      ],
-      "화": [
-        "수"
-      ],
-      "풍": [
-        "화"
-      ],
-      "지": [
-        "풍"
-      ]
-    },
-    "riskScore": {
-      "매우높음": 20,
-      "높음": 12,
-      "중간": 6,
-      "낮음": 0,
-      "정보부족": 8
-    },
-    "tierScore": {
-      "S": 16,
-      "A": 10,
-      "B": 5,
-      "C": 0,
-      "연구중": 3
-    }
+    "description": "부족명, 팀명, 닉네임 검색용 초간단 오더 데이터"
   },
   "opponents": [
     {
       "id": "OPP-0001",
       "clan": "예시부족",
+      "team": "1팀",
       "nickname": "상대A",
       "attributes": "화10",
       "hp": 380,
       "mainPets": [
         "주작(환)",
         "백호"
-      ],
-      "traits": "고순 딜러 / 선공 압박 강함",
-      "risk": "매우높음",
-      "notes": "수속 딜러로 선견제. 순발 빠른 편이라 첫 턴 주의.",
-      "updatedAt": "2026-06-14"
+      ]
     },
     {
       "id": "OPP-0002",
       "clan": "예시부족",
+      "team": "1팀",
       "nickname": "상대B",
       "attributes": "지10",
       "hp": 460,
       "mainPets": [
         "테이론",
         "현무"
-      ],
-      "traits": "밸런스형 / 중후반 유지력 좋음",
-      "risk": "높음",
-      "notes": "오래 두면 위험. 풍속 고순으로 압박 추천.",
-      "updatedAt": "2026-06-14"
+      ]
     },
     {
       "id": "OPP-0003",
       "clan": "다른부족",
+      "team": "2팀",
       "nickname": "상대C",
       "attributes": "수10",
       "hp": 520,
       "mainPets": [
         "현무",
         "기린"
-      ],
-      "traits": "탱커 / 체력 높고 버티기 좋음",
-      "risk": "중간",
-      "notes": "딜러 먼저 정리 후 처리. 지속성 압박이 유효.",
-      "updatedAt": "2026-06-14"
+      ]
     },
     {
       "id": "OPP-0004",
       "clan": "다른부족",
+      "team": "2팀",
       "nickname": "상대D",
       "attributes": "풍10",
       "hp": 350,
       "mainPets": [
         "백호",
         "주작"
-      ],
-      "traits": "저체력 고속형 / 초반 변수가 큼",
-      "risk": "높음",
-      "notes": "화속성으로 빠르게 끊으면 쉬워짐.",
-      "updatedAt": "2026-06-14"
-    },
-    {
-      "id": "OPP-0005",
-      "clan": "샘플부족",
-      "nickname": "상대E",
-      "attributes": "지8/수2",
-      "hp": 430,
-      "mainPets": [
-        "기린",
-        "테이론"
-      ],
-      "traits": "혼합 속성 / 대응이 애매함",
-      "risk": "정보부족",
-      "notes": "속성 정보가 애매하므로 실제 전투 기록 추가 필요.",
-      "updatedAt": "2026-06-14"
-    }
-  ],
-  "petTiers": [
-    {
-      "id": "PET-0001",
-      "tier": "S",
-      "name": "주작(환)",
-      "attribute": "화10",
-      "role": "딜러",
-      "counter": "수속 딜러",
-      "memo": "폭딜과 마무리 능력이 좋아 1순위 견제 후보."
-    },
-    {
-      "id": "PET-0002",
-      "tier": "S",
-      "name": "테이론",
-      "attribute": "지10",
-      "role": "밸런스 딜러",
-      "counter": "풍속 고순",
-      "memo": "안정적인 화력. 오래 두면 위험."
-    },
-    {
-      "id": "PET-0003",
-      "tier": "A",
-      "name": "현무",
-      "attribute": "수10",
-      "role": "탱커",
-      "counter": "지속성 압박",
-      "memo": "생존력이 높아 후순위 처리 가능."
-    },
-    {
-      "id": "PET-0004",
-      "tier": "A",
-      "name": "백호",
-      "attribute": "풍10",
-      "role": "고순 압박",
-      "counter": "화속성",
-      "memo": "빠르지만 체력이 낮은 조합이면 빠르게 끊기 좋음."
-    },
-    {
-      "id": "PET-0005",
-      "tier": "B",
-      "name": "기린",
-      "attribute": "지8/수2",
-      "role": "보조/밸런스",
-      "counter": "상대 조합에 따라 변동",
-      "memo": "정보가 쌓이면 티어 재조정."
-    },
-    {
-      "id": "PET-0006",
-      "tier": "연구중",
-      "name": "신규펫",
-      "attribute": "미확인",
-      "role": "연구중",
-      "counter": "미확인",
-      "memo": "실전 데이터 수집 필요."
+      ]
     }
   ]
 }

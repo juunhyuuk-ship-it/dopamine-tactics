@@ -4,196 +4,42 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dopamine Tactics</title>
-  <meta name="description" content="부족전 듀얼 오더용 상대 검색 및 펫 티어표" />
+  <meta name="description" content="부족전 듀얼 오더용 상대 검색 도구" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <header class="hero">
-      <nav class="topbar" aria-label="주 메뉴">
-        <a class="brand" href="#home" aria-label="Dopamine Tactics 홈">
-          <span class="brand-mark">DT</span>
-          <span>Dopamine Tactics</span>
-        </a>
-        <div class="nav-actions">
-          <a href="#search">상대 검색</a>
-          <a href="#tiers">펫 티어표</a>
-          <a href="#guide">데이터 수정법</a>
-        </div>
-      </nav>
+  <main class="page">
+    <section class="hero">
+      <div class="logo">DT</div>
+      <h1>Dopamine Tactics</h1>
+      <p>부족명, 팀명, 닉네임을 검색하세요.</p>
 
-      <section id="home" class="hero-center">
-        <div class="eyebrow">DUEL ORDER DATABASE</div>
-        <h1>Dopamine Tactics</h1>
-        <p>상대 부족명 또는 닉네임을 검색해 속성, 체력, 주요펫, 특징을 빠르게 확인하세요.</p>
+      <div class="search-box">
+        <input id="searchInput" type="search" placeholder="예: 예시부족 / 1팀 / 상대A" autocomplete="off" autofocus />
+        <button id="clearBtn" type="button">초기화</button>
+      </div>
 
-        <div class="global-search-wrap">
-          <label for="globalSearch" class="sr-only">상대 부족명 또는 닉네임 검색</label>
-          <input id="globalSearch" type="search" placeholder="상대 부족명 또는 닉네임 입력" autocomplete="off" />
-          <button id="clearGlobalSearch" type="button">초기화</button>
-        </div>
+      <div class="count" id="resultCount">전체 데이터 0명</div>
+    </section>
 
-        <div class="hero-stats" aria-label="요약 통계">
-          <div>
-            <strong id="statOpponents">0</strong>
-            <span>등록 상대</span>
-          </div>
-          <div>
-            <strong id="statClans">0</strong>
-            <span>등록 부족</span>
-          </div>
-          <div>
-            <strong id="statPets">0</strong>
-            <span>티어표 펫</span>
-          </div>
-        </div>
-      </section>
-    </header>
+    <section class="results" id="results" aria-live="polite"></section>
 
-    <main>
-      <section id="search" class="panel">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">OPPONENT SCANNER</p>
-            <h2>상대 검색</h2>
-          </div>
-          <p class="section-desc">검색어와 우리팀 속성을 기준으로 잡기 쉬운 순서 / 어려운 순서를 자동 정렬합니다.</p>
-        </div>
-
-        <div class="controls-grid">
-          <div class="field">
-            <label for="opponentSearch">부족명 / 닉네임 / 펫 / 특징 검색</label>
-            <input id="opponentSearch" type="search" placeholder="예: 예시부족, 상대A, 주작" autocomplete="off" />
-          </div>
-
-          <div class="field">
-            <label>우리팀 주요 공격 속성</label>
-            <div class="chip-group" id="teamAttributeChips" role="group" aria-label="우리팀 속성 선택"></div>
-            <small>선택한 속성으로 상대 속성 상성을 계산합니다. 여러 개 선택 가능.</small>
-          </div>
-
-          <div class="field">
-            <label for="sortMode">정렬 기준</label>
-            <select id="sortMode">
-              <option value="easy">잡기 쉬운 순</option>
-              <option value="hard">잡기 어려운 순</option>
-              <option value="hpAsc">체력 낮은 순</option>
-              <option value="hpDesc">체력 높은 순</option>
-              <option value="risk">위험도 높은 순</option>
-              <option value="name">닉네임 가나다순</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="summary-grid" id="summaryCards" aria-label="검색 결과 요약"></div>
-
-        <div class="order-lists">
-          <article>
-            <h3>잡기 쉬운 순서</h3>
-            <ol id="easyTargets"></ol>
-          </article>
-          <article>
-            <h3>잡기 어려운 순서</h3>
-            <ol id="hardTargets"></ol>
-          </article>
-        </div>
-
-        <div class="table-card">
-          <div class="table-header">
-            <h3>상대 인원 리스트</h3>
-            <span id="resultCount">0명</span>
-          </div>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>부족명</th>
-                  <th>닉네임</th>
-                  <th>속성</th>
-                  <th>체력</th>
-                  <th>주요펫</th>
-                  <th>특징</th>
-                  <th>위험도</th>
-                  <th>공략 판단</th>
-                </tr>
-              </thead>
-              <tbody id="opponentRows"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="tiers" class="panel">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">PET TIER LIST</p>
-            <h2>펫 티어표</h2>
-          </div>
-          <p class="section-desc">S/A/B/C/연구중 필터와 펫 이름 검색을 지원합니다.</p>
-        </div>
-
-        <div class="controls-grid two">
-          <div class="field">
-            <label for="petSearch">펫 이름 / 속성 / 역할 검색</label>
-            <input id="petSearch" type="search" placeholder="예: 주작, 테이론, 딜러" autocomplete="off" />
-          </div>
-          <div class="field">
-            <label>티어 필터</label>
-            <div class="chip-group" id="tierChips" role="group" aria-label="티어 선택"></div>
-          </div>
-        </div>
-
-        <div class="pet-grid" id="petCards"></div>
-      </section>
-
-      <section id="guide" class="panel guide">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">SIMPLE ADMIN</p>
-            <h2>데이터 수정법</h2>
-          </div>
-        </div>
-
-        <div class="guide-grid">
-          <div class="guide-card">
-            <h3>상대팀 추가</h3>
-            <p><code>data.json</code> 파일의 <code>opponents</code> 배열에 새 항목을 추가하세요.</p>
-            <pre><code>{
-  "id": "OPP-0006",
+    <section class="admin-guide">
+      <details>
+        <summary>데이터 수정 방법</summary>
+        <p><strong>data.json</strong> 파일의 <strong>opponents</strong> 안에 상대 정보를 추가/수정하면 됩니다.</p>
+        <pre><code>{
+  "id": "OPP-0005",
   "clan": "부족명",
+  "team": "팀명",
   "nickname": "닉네임",
   "attributes": "화10",
   "hp": 400,
-  "mainPets": ["주작(환)", "백호"],
-  "traits": "특징",
-  "risk": "높음",
-  "notes": "공략 메모",
-  "updatedAt": "2026-06-14"
+  "mainPets": ["주요펫1", "주요펫2"]
 }</code></pre>
-          </div>
-
-          <div class="guide-card">
-            <h3>펫 티어 추가</h3>
-            <p><code>data.json</code> 파일의 <code>petTiers</code> 배열에 새 항목을 추가하세요.</p>
-            <pre><code>{
-  "id": "PET-0007",
-  "tier": "A",
-  "name": "펫이름",
-  "attribute": "수10",
-  "role": "딜러",
-  "counter": "지속성",
-  "memo": "실전 메모"
-}</code></pre>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <span>Dopamine Tactics</span>
-      <span>GitHub Pages ready · data.json 기반</span>
-    </footer>
-  </div>
+      </details>
+    </section>
+  </main>
 
   <script src="./script.js"></script>
 </body>
