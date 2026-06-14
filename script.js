@@ -261,7 +261,7 @@ function render(list, keyword = "") {
           <div class="member-list">
             ${recommendation.members.length
               ? recommendation.members.map((member) => `<span class="member">${escapeHtml(member.name)} <small>${escapeHtml(member.attributes)}</small></span>`).join("")
-              : `<span class="member">판단 필요</span>`}
+              : `<span class="member">완벽상성 없음</span>`}
           </div>
           <span class="advantage-note">${escapeHtml(recommendation.reason)}</span>
         </div>
@@ -281,19 +281,24 @@ function getRecommendedMembers(enemyAttributeText = "") {
     };
   }
 
-  const scored = TEAM_MEMBERS.map((member) => {
+  // 완벽 상성 기준:
+  // 상대 속성을 모두 카운터칠 수 있는 속성을 가진 캐릭터만 표시합니다.
+  // 예: 상대 지풍 → 필요한 속성 풍화 → 화풍 보유 캐릭터만 표시
+  // 예: 상대 지수 → 필요한 속성 풍지 → 지풍 보유 캐릭터만 표시
+  const perfectMembers = TEAM_MEMBERS.map((member) => {
     const memberAttributes = extractAttributes(member.attributes);
-    const score = memberAttributes.filter((attr) => neededAttributes.includes(attr)).length;
-    return { ...member, score };
+    const hasAllNeeded = neededAttributes.every((attr) => memberAttributes.includes(attr));
+    return { ...member, hasAllNeeded };
   })
-    .filter((member) => member.score > 0)
-    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, "ko"));
+    .filter((member) => member.hasAllNeeded)
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
-  const uniqueNeeded = [...new Set(neededAttributes)];
-  const reason = `상대 ${enemyAttributes.join("/")} 기준, ${uniqueNeeded.join("/")} 속성이 유리`;
+  const reason = perfectMembers.length
+    ? `상대 ${enemyAttributes.join("/")} 기준, ${neededAttributes.join("/")} 속성을 모두 가진 캐릭터만 표시`
+    : `상대 ${enemyAttributes.join("/")} 기준, 필요한 ${neededAttributes.join("/")} 속성을 모두 가진 캐릭터 없음`;
 
   return {
-    members: scored,
+    members: perfectMembers,
     reason
   };
 }
