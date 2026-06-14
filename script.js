@@ -103,17 +103,12 @@ async function loadDataRows() {
 
 function fetchText(url) {
   return fetch(url, { cache: "no-store" }).then(async (response) => {
-    if (!response.ok) {
-      throw new Error(`${url} 응답 오류 ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`${url} 응답 오류 ${response.status}`);
     const text = await response.text();
     const trimmed = text.trim();
-
     if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
       throw new Error(`${url}에서 CSV가 아니라 HTML 페이지가 내려왔습니다.`);
     }
-
     return text;
   });
 }
@@ -135,7 +130,6 @@ function loadGoogleVisualizationRows(csvUrl) {
     window.google.visualization.Query.setResponse = (response) => {
       if (done) return;
       done = true;
-
       cleanup();
 
       try {
@@ -173,9 +167,7 @@ function loadGoogleVisualizationRows(csvUrl) {
     function cleanup() {
       clearTimeout(timer);
       script.remove();
-      if (previousGoogle) {
-        window.google = previousGoogle;
-      }
+      if (previousGoogle) window.google = previousGoogle;
     }
 
     document.head.appendChild(script);
@@ -236,12 +228,15 @@ function render(list, keyword = "") {
       <article class="result-card">
         <div class="result-main">
           <div class="nickname">${escapeHtml(item.nickname || "-")}</div>
-          <div class="sub">${escapeHtml(item.clan || "-")} ${item.team ? "· " + escapeHtml(item.team) : ""}</div>
+          <div class="sub">
+            <span class="sub-pill">${escapeHtml(item.clan || "-")}</span>
+            ${item.team ? `<span class="sub-pill">${escapeHtml(item.team)}</span>` : ""}
+          </div>
         </div>
 
         <div class="info-box">
           <span class="info-label">속성</span>
-          <strong class="info-value">${escapeHtml(item.attributes || "-")}</strong>
+          <strong class="info-value">${escapeHtml(formatAttributes(item.attributes || "-"))}</strong>
         </div>
 
         <div class="info-box">
@@ -260,7 +255,7 @@ function render(list, keyword = "") {
           <span class="info-label">유리한 우리팀</span>
           <div class="member-list">
             ${recommendation.members.length
-              ? recommendation.members.map((member) => `<span class="member">${escapeHtml(member.name)} <small>${escapeHtml(member.attributes)}</small></span>`).join("")
+              ? recommendation.members.map((member) => `<span class="member">${escapeHtml(member.name)} <small>${escapeHtml(formatAttributes(member.attributes))}</small></span>`).join("")
               : `<span class="member">완벽상성 없음</span>`}
           </div>
           <span class="advantage-note">${escapeHtml(recommendation.reason)}</span>
@@ -275,32 +270,27 @@ function getRecommendedMembers(enemyAttributeText = "") {
   const neededAttributes = getCounterAttributes(enemyAttributes);
 
   if (!neededAttributes.length) {
-    return {
-      members: [],
-      reason: "상대 속성을 읽지 못했습니다."
-    };
+    return { members: [], reason: "상대 속성을 읽지 못했습니다." };
   }
 
-  // 완벽 상성 기준:
-  // 상대 속성을 모두 카운터칠 수 있는 속성을 가진 캐릭터만 표시합니다.
-  // 예: 상대 지풍 → 필요한 속성 풍화 → 화풍 보유 캐릭터만 표시
-  // 예: 상대 지수 → 필요한 속성 풍지 → 지풍 보유 캐릭터만 표시
-  const perfectMembers = TEAM_MEMBERS.map((member) => {
-    const memberAttributes = extractAttributes(member.attributes);
-    const hasAllNeeded = neededAttributes.every((attr) => memberAttributes.includes(attr));
-    return { ...member, hasAllNeeded };
-  })
-    .filter((member) => member.hasAllNeeded)
+  const neededKey = toAttributeKey(neededAttributes);
+
+  // 완벽상성 v2:
+  // 부분적으로 유리한 속성은 제외.
+  // 상대 속성을 모두 카운터치는 '정확한 속성 조합'만 표시.
+  const perfectMembers = TEAM_MEMBERS
+    .map((member) => ({
+      ...member,
+      key: toAttributeKey(extractAttributes(member.attributes))
+    }))
+    .filter((member) => member.key === neededKey)
     .sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
   const reason = perfectMembers.length
-    ? `상대 ${enemyAttributes.join("/")} 기준, ${neededAttributes.join("/")} 속성을 모두 가진 캐릭터만 표시`
-    : `상대 ${enemyAttributes.join("/")} 기준, 필요한 ${neededAttributes.join("/")} 속성을 모두 가진 캐릭터 없음`;
+    ? `상대 ${formatAttributes(enemyAttributes.join(""))} → 필요 ${formatAttributes(neededAttributes.join(""))} 조합만 표시`
+    : `상대 ${formatAttributes(enemyAttributes.join(""))} → 필요 ${formatAttributes(neededAttributes.join(""))} 조합 없음`;
 
-  return {
-    members: perfectMembers,
-    reason
-  };
+  return { members: perfectMembers, reason };
 }
 
 function getCounterAttributes(enemyAttributes) {
@@ -308,9 +298,7 @@ function getCounterAttributes(enemyAttributes) {
 
   Object.entries(ADVANTAGE_MAP).forEach(([ourAttribute, strongAgainstList]) => {
     enemyAttributes.forEach((enemyAttribute) => {
-      if (strongAgainstList.includes(enemyAttribute)) {
-        counters.push(ourAttribute);
-      }
+      if (strongAgainstList.includes(enemyAttribute)) counters.push(ourAttribute);
     });
   });
 
@@ -320,6 +308,17 @@ function getCounterAttributes(enemyAttributes) {
 function extractAttributes(text = "") {
   const found = String(text).match(/[지수화풍]/g) || [];
   return [...new Set(found)];
+}
+
+function toAttributeKey(attributes) {
+  const order = ["지", "수", "화", "풍"];
+  return [...new Set(attributes)].sort((a, b) => order.indexOf(a) - order.indexOf(b)).join("");
+}
+
+function formatAttributes(value = "") {
+  const attrs = extractAttributes(value);
+  if (!attrs.length) return value;
+  return attrs.join(" / ");
 }
 
 function splitPets(value = "") {
@@ -378,7 +377,7 @@ function renderTeamList() {
   teamList.innerHTML = TEAM_MEMBERS.map((member) => `
     <span class="team-member">
       <strong>${escapeHtml(member.name)}</strong>
-      <span class="attr">${escapeHtml(member.attributes)}</span>
+      <span class="attr">${escapeHtml(formatAttributes(member.attributes))}</span>
     </span>
   `).join("");
 }

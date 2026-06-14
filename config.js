@@ -13,7 +13,7 @@ window.DOPAMINE_TEAM_MEMBERS = [
   { name: "매기", attributes: "수" }
 ];
 
-// 상성 기준
+// 상성 기준: 내 속성이 어느 상대 속성을 먹는지
 window.DOPAMINE_ADVANTAGE_MAP = {
   "지": ["수"],
   "수": ["화"],
